@@ -31,6 +31,8 @@ void ANoteBar::Tick(float DeltaTime)
 	FVector normalizedToVector = EndPointWorldSpace - SpawnPointWorldSpace;
 	normalizedToVector.Normalize();
 
+	FVector rightVector = normalizedToVector.Cross(FVector::UpVector) * LaneWidth;
+
 	double RemainingDelta = DeltaTime;
 	while (TimeToNextSpawn < RemainingDelta)
 	{
@@ -39,10 +41,15 @@ void ANoteBar::Tick(float DeltaTime)
 		UClass* ToSpawn = NoteNibClass;
 		if (ToSpawn != nullptr)
 		{
-			ANoteNib* newNote = GetWorld()->SpawnActor<ANoteNib>(ToSpawn,
-				SpawnPointWorldSpace + normalizedToVector * (RemainingDelta * NoteSpeed),
+			int laneIndex = FMath::RandRange(0,2);
+			//for (int laneIndex = -1; laneIndex < 2; ++laneIndex)
+			{
+				ANoteNib* newNote = GetWorld()->SpawnActor<ANoteNib>(ToSpawn,
+				SpawnPointWorldSpace + (rightVector * (laneIndex-1)) + normalizedToVector * (RemainingDelta * NoteSpeed),
 				normalizedToVector.Rotation());
-			ActiveNibs.Add(newNote);
+				newNote->Lane = laneIndex;
+				ActiveNibs.Add(newNote);
+			}
 		}
 		else
 		{
@@ -74,6 +81,35 @@ void ANoteBar::Tick(float DeltaTime)
 			nib->Destroy();
 		}
 		ActiveNibs.RemoveAt(0);
+	}
+}
+
+void ANoteBar::TryHit(int laneIndex)
+{
+	FVector toVector = EndPointWorldSpace - SpawnPointWorldSpace;
+	FVector normalizedToVector = toVector;
+	normalizedToVector.Normalize();
+
+	for (int i = ActiveNibs.Num()-1; i >= 0; --i)
+	{
+		ANoteNib* nib = ActiveNibs[i];
+		
+		if (!IsValid(nib)) continue;
+		
+		if (nib->Lane != laneIndex) continue;
+
+		FVector location = nib->GetActorLocation();
+
+		double distanceFromPerfect = (location - PerfectHitPointWorldSpace).Dot(normalizedToVector);
+		if (FMath::Abs(distanceFromPerfect) < AcceptableHitDistanceWorldSpace)
+		{
+			// hit!
+			LoudError(FString::Printf(TEXT("Hit! Lane: %d, Distance: %f"), nib->Lane, distanceFromPerfect), reinterpret_cast<uint64>(this));
+			
+			// remove
+			ActiveNibs.RemoveAt(i);
+			nib->Destroy();
+		}
 	}
 }
 

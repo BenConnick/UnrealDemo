@@ -25,6 +25,8 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
+	void TryHit(int laneIndex);
+
 protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	TSubclassOf<ANoteNib> NoteNibClass;
@@ -33,10 +35,19 @@ protected:
 	TArray<ANoteNib*> ActiveNibs;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	double LaneWidth = 10;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	FVector SpawnPointWorldSpace;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	FVector EndPointWorldSpace;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	FVector PerfectHitPointWorldSpace;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	double AcceptableHitDistanceWorldSpace;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	double NoteSpeed;
