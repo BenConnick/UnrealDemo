@@ -1,0 +1,17 @@
+# ignore everything
+*
+!*/
+
+# Whitelist
+!.gitignore
+!.gitattributes
+!/Config/**
+!/Content/**
+!/Source/**
+!Rhythm.uproject
+
+# Rider
+.idea/
+
+# Mac
+*.DS_Store
